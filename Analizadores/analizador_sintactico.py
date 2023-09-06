@@ -1,5 +1,8 @@
 import ply.yacc as yacc
-from lexer import *
+from Analizadores.lexer import *
+from Comandos.comandos_generales import *
+from Comandos.comandos_disco import *
+
 
 precedence = ()
 
@@ -34,10 +37,20 @@ def p_commands(t):
                 | command_cat'''
     t[0] = t[1]
 
+def cmd_execute(path):
+    try:
+        with open(path, 'r') as f:
+            entrada = f.read()
+            parse(entrada)
+    except:
+        print("Error al ejecutar el archivo")
+        return
+
 def p_command_execute(t):
     'command_execute : EXECUTE GUION PATH IGUAL CADENA '
     # t[0] : t[1]
-    print(t[5])
+    #print(t[5])
+    cmd_execute(t[5])
     t[0] = t[1]
 
 def p_command_mkdisk(t):
@@ -56,7 +69,9 @@ def p_command_mkdisk(t):
 
     _unit = _unit if _unit != None else 'M'
     _fitsym = _fitsym if _fitsym != None else 'FF'
-    print(_size, _path, _unit, _fitsym)
+    
+    #print(_size, _path, _unit, _fitsym)
+    cmd_mkdisk(_size, _path, _fitsym, _unit)
     t[0] = t[1]
     
 
@@ -408,25 +423,3 @@ def parse(input):
     lexer.lineno = 1
     return parser.parse(input)
 
-entrada = '''
-execute -path="/home/Disco1.dsk"
-mkdisk -size=300 -path="/home/Disco1.dsk" -unit=M -fit=WF
-rmdisk -path="/home/Disco1.dsk"
-fdisk -size=300 -path="/home/Disco1.dsk" -name="Particion1"
-mount -path="/home/Disco2.dsk" -name="Part1"
-mount -name="Part3" -path="/home/Disco3.dsk"
-unmount -id="061Disco1"
-mkfs -type=full -id="061Disco1" -fs=3fs
-
-login -user="root" -pass="123" -id="061Disco1"
-logout
-mkgrp -name="Grupo1"
-rmgrp -name="usuarios"
-mkusr -user="user1" -pass="usuario" -grp="usuarios2"
-rmusr -user="user1"
-
-mkfile -size=15 -path="/home/user/docs/a.txt" -r
-mkfile -path="/home/user/docs/b.txt" -r -cont="/home/Documents/b.txt"
-cat -file1="/home/a.txt" -file2="/home/b.txt" -file3="/home/c.txt"
-''' 
-parse(entrada)
