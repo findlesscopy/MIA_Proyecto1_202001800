@@ -1,8 +1,7 @@
 import ply.yacc as yacc
 from Analizadores.lexer import *
-from Comandos.comandos_generales import *
+import Comandos.comandos_generales 
 from Comandos.comandos_disco import *
-
 
 precedence = ()
 
@@ -72,6 +71,7 @@ def p_command_mkdisk(t):
     
     #print(_size, _path, _unit, _fitsym)
     cmd_mkdisk(_size, _path, _fitsym, _unit)
+    imprimirMBR(_path)
     t[0] = t[1]
     
 
@@ -95,6 +95,7 @@ def p_parameter_mkdisk(t):
 def p_command_rmdisk(t):
     'command_rmdisk : RMDISK GUION PATH IGUAL CADENA'
     print(t[5])
+    cmd_rmdisk(t[5])
     t[0] = t[1]
 
 def p_command_fdisk(t):
@@ -121,7 +122,10 @@ def p_command_fdisk(t):
     _unit = _unit if _unit != None else 'K'
     _type = _type if _type != None else 'P'
     _fitsym = _fitsym if _fitsym != None else 'WF'
-    print(_size, _path, _name, _unit, _type, _fitsym, _delete, _add)
+    # print("Hola")
+    # print(_size, _path, _name, _unit, _type, _fitsym, _delete, _add)
+    cmd_fdisk(_size, _path, _name, _unit, _type, _fitsym, _delete, _add)
+    imprimirMBR(_path)
     t[0] = t[1]
 
 def p_parameters_fdisk(t):
