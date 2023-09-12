@@ -71,7 +71,7 @@ def p_command_mkdisk(t):
     
     #print(_size, _path, _unit, _fitsym)
     cmd_mkdisk(_size, _path, _fitsym, _unit)
-    imprimirMBR(_path)
+    #imprimirMBR(_path)
     t[0] = t[1]
     
 
@@ -123,9 +123,9 @@ def p_command_fdisk(t):
     _type = _type if _type != None else 'P'
     _fitsym = _fitsym if _fitsym != None else 'WF'
     # print("Hola")
-    # print(_size, _path, _name, _unit, _type, _fitsym, _delete, _add)
+    #print("TYPE: ", _type)
     cmd_fdisk(_size, _path, _name, _unit, _type, _fitsym, _delete, _add)
-    imprimirMBR(_path)
+    #imprimirMBR(_path)
     t[0] = t[1]
 
 def p_parameters_fdisk(t):

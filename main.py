@@ -1,37 +1,58 @@
 from Analizadores.analizador_sintactico import parse
 
-# execute -path="/home/Disco1.dsk"
-# mkdisk -size=3000 -unit=K -path="./home/user/Disco1.dsk"
-# rmdisk -path="./home/user/Disco1.dsk"
-# fdisk -size=300 -path="/home/Disco1.dsk" -name="Particion1"
-# mount -path="/home/Disco2.dsk" -name="Part1"
-# mount -name="Part3" -path="/home/Disco3.dsk"
-# unmount -id="061Disco1"
-# mkfs -type=full -id="061Disco1" -fs=3fs
+# del archivo de entrada Facil
+# mkdisk -size=50 -unit=M -path="./home/archivos/Disco1.dsk" -fit=FF
+# mkdisk -unit=K -size=51200 -path="./home/archivos/Disco2.dsk" -fit=BF
+# mkDisk -size=10 -path="./home/archivos/Disco3.dsk"
+# mkdisk -size=51200 -path="./home/archivos/mis archivos/Disco4.dsk" -unit=K
+# mkDisk -size=20 -path="./home/archivos/mis archivos/Disco5.dsk" -unit=M -fit=WF
+# funcionan
+# error de disco
+# mkdisk -param=x -size=30 -path="./home/archivos/Disco.dsk" 
+# ELMINACION DE DISCOS
+# rmDisk -path="./home/Disco3.dsk" # Error no existe
+# rmDisk -path="./home/archivos/Disco3.dsk"
+# RMDISK -path="./home/archivos/mis archivos/Disco4.dsk"
+#CREACION DE PARTICIONES
+#Particiones en el disco1 (funcionan)
+# fdisk -type=P -unit=K -name="Part1" -size=7680 -path="./home/archivos/Disco1.dsk" -fit=BF 
+# fdisk -type=E -unit=K -name="Part2" -size=7680 -path="./home/archivos/Disco1.dsk" -fit=FF
+# fdisk -type=E -unit=K -name="Part3" -size=7680 -path="./home/archivos/Disco1.dsk" -fit=WF 
+# fdisk -type=P -unit=K -name="Part3" -size=7680 -path="./home/archivos/Disco1.dsk" -fit=WF
+# fdisk -type=P -unit=K -name="Part4" -size=7680 -path="./home/archivos/Disco1.dsk" -fit=BF
+# FDISK -type=L -unit=k -name="Part5" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=BF 
+# fdisk -type=L -unit=K -name="Part6" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=WF
+# fdisk -type=L -unit=K -name="Part7" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=wf
+# fdisk -type=L -unit=K -name="Part8" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=FF
+# fdisk -type=L -unit=K -name="Part9" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=BF
+# fdisk -type=L -unit=K -name="Part9" -size=1024 -path="./home/archivos/Disco1.dsk" -fit=BF
+#Particiones en el disco2
 
-# login -user="root" -pass="123" -id="061Disco1"
-# logout
-# mkgrp -name="Grupo1"
-# rmgrp -name="usuarios"
-# mkusr -user="user1" -pass="usuario" -grp="usuarios2"
-# rmusr -user="user1"
 
-# mkfile -size=15 -path="/home/user/docs/a.txt" -r
-# mkfile -path="/home/user/docs/b.txt" -r -cont="/home/Documents/b.txt"
-# cat -file1="/home/a.txt" -file2="/home/b.txt" -file3="/home/c.txt"
-# mkdisk -size=10 -path="./home/user/Disco1.dsk"
-# fdisk -size=3 -path="./home/user/Disco1.dsk" -name="Particion1" 
-# fdisk -size=1000 -unit=K -path="./home/user/Disco1.dsk" -name="Particion1"
-# fdisk -size=1000 -path="./home/user/Disco1.dsk" -unit=K -name="Particion3"
-# fdisk -unit=K -size= -path="./home/user/Disco1.dsk" -name="Particion4"
-# mkdisk -size=10 -path="./home/user/Disco1.dsk"
 entrada = '''
-mkdisk -size=75 -unit=M -path="./home/Disco1.dsk"
-fdisk -type=P -unit=M -name="Part1" -size=15 -path="./home/Disco1.dsk"
-fdisk -type=P -unit=M -name="Part2" -size=20 -path="./home/Disco1.dsk"
+mkdisk -unit=K -size=51200 -path="./home/archivos/Disco2.dsk" -fit=BF
+
+fdisk -type=L -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
+fdisk -type=L -unit=K -name="Part12" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
+fDisk -type=P -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
+fDisk -type=P -unit=M -name="Part12" -size=5 -path="./home/archivos/Disco2.dsk" -fit=FF 
+fDisk -type=P -unit=K -name="Part13" -size=5120 -path="./home/archivos/Disco2.dsk" -fit=WF 
+fdisk -type=E -unit=M -name="Part14" -size=20 -path="./home/archivos/Disco2.dsk" 
+
+fdisk -type=L -unit=K -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" 
+fdisk -type=L -unit=K -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part17" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part18" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part19" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part20" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part21" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part22" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part23" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part24" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part25" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part26" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=K -name="Part27" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF 
 ''' 
-
-
 
 # def inicio():
 #         while True:
