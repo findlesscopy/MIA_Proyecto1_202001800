@@ -4,7 +4,7 @@ class Particion:
     def __init__(self):
         self.part_status = '0' # 1 = activa, 0 = inactiva, D = eliminada
         self.part_type = 'P' # P = primaria, E = extendida, L = logica
-        self.part_fit = 'BF'
+        self.part_fit = 'WF'
         self.part_start = 0
         self.part_size = 0
         self.part_name = ''

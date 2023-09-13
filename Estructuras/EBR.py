@@ -2,7 +2,7 @@ import struct
 
 class EBR:
     def __init__(self):
-        self.part_status = '0'
+        self.part_status = '0' # 1 = activa, 0 = inactiva, D = eliminada
         self.part_fit = 'WF'
         self.part_start = 0
         self.part_size = 0

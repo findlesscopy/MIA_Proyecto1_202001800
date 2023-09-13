@@ -30,28 +30,34 @@ from Analizadores.analizador_sintactico import parse
 
 
 entrada = '''
-mkdisk -unit=K -size=51200 -path="./home/archivos/Disco2.dsk" -fit=BF
+mkdisk -unit=K -size=51200 -path="./home/archivos/Disco2.dsk" -fit=FF
 
 fdisk -type=L -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
 fdisk -type=L -unit=K -name="Part12" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
+fdisk -type=E -unit=M -name="Part14" -size=20 -path="./home/archivos/Disco2.dsk" 
 fDisk -type=P -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
 fDisk -type=P -unit=M -name="Part12" -size=5 -path="./home/archivos/Disco2.dsk" -fit=FF 
 fDisk -type=P -unit=K -name="Part13" -size=5120 -path="./home/archivos/Disco2.dsk" -fit=WF 
-fdisk -type=E -unit=M -name="Part14" -size=20 -path="./home/archivos/Disco2.dsk" 
 
-fdisk -type=L -unit=K -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" 
-fdisk -type=L -unit=K -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part17" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part18" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part19" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part20" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part21" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part22" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part23" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part24" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part25" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part26" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
-fdisk -type=L -unit=K -name="Part27" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF 
+
+fdisk -type=L -unit=B -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" 
+fdisk -type=L -unit=B -name="Part15" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part17" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part18" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part19" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part20" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part21" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part22" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part23" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part24" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part25" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part26" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF
+fdisk -type=L -unit=B -name="Part27" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=FF 
+
+fdisk -delete=full -name="Part17" -path="./home/archivos/Disco2.dsk" -size=10240
+
+fdisk -type=L -unit=B -name="Part17" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=WF
+
 ''' 
 
 # def inicio():
