@@ -2,6 +2,7 @@ import ply.yacc as yacc
 from Analizadores.lexer import *
 import Comandos.comandos_generales 
 from Comandos.comandos_disco import *
+from Comandos.comandos_reportes import *
 
 precedence = ()
 
@@ -33,7 +34,8 @@ def p_commands(t):
                 | command_mkusr
                 | command_rmusr
                 | command_mkfile
-                | command_cat'''
+                | command_cat
+                | command_rep'''
     t[0] = t[1]
 
 def cmd_execute(path):
@@ -157,8 +159,8 @@ def p_command_mount(t):
             _path = dict['path']
         elif 'name' in dict:
             _name = dict['name']
-
-    print(_path, _name)
+    cmd_mount(_path, _name)
+    #print(_path, _name)
     t[0] = t[1]
 
 def p_parameters_mount(t):
@@ -178,7 +180,8 @@ def p_parameter_mount(t):
 
 def p_command_unmount(t):
     'command_unmount : UNMOUNT GUION ID_DISK IGUAL CADENA'
-    print(t[5])
+    cmd_unmount(t[5])
+    #print(t[5])
     t[0] = t[1]
 
 def p_command_mkfs(t):
@@ -347,6 +350,90 @@ def p_parameter_cat(t):
     '''parameter_cat : param_file'''
     t[0] = t[1]
     
+def p_command_rep(t):
+    '''command_rep : REP parameters_rep'''
+    _name, _path, _id, _ruta = None, None, None, None
+
+    for dict in t[2]:
+        if 'name' in dict:
+            _name = dict['name']
+        elif 'path' in dict:
+            _path = dict['path']
+        elif 'id' in dict:
+            _id = dict['id']
+        elif 'ruta' in dict:
+            _ruta = dict['ruta']
+    
+    if _name == 'mbr':
+        cmd_reporte_mbr(_path, _id)
+        print("Se ejecuta comando MBR")
+    elif _name == 'disk':
+        cmd_reporte_disk(_path, _id)
+        print("Se ejecuta comando DISK")
+    elif _name == 'inode':
+        #cmd_reporte_inode(_path, _id)
+        print("Se ejecuta comando INODE")
+    elif _name == 'journaling':
+        #cmd_reporte_journaling(_path, _id)
+        print("Se ejecuta comando JOURNALING")
+    elif _name == 'block':
+        #cmd_reporte_block(_path, _id)
+        print("Se ejecuta comando BLOCK")
+    elif _name == 'bm_inode':
+        #cmd_reporte_bm_inode(_path, _id)
+        print("Se ejecuta comando BM_INODE")
+    elif _name == 'bm_block':
+        #cmd_reporte_bm_block(_path, _id)
+        print("Se ejecuta comando BM_BLOCK")
+    elif _name == 'tree':
+        #cmd_reporte_tree(_path, _id)
+        print("Se ejecuta comando TREE")
+    elif _name == 'sb':
+        #cmd_reporte_sb(_path, _id)
+        print("Se ejecuta comando SB")
+    elif _name == 'file':
+        #cmd_reporte_file(_path, _id, _ruta)
+        print("Se ejecuta comando FILE")
+    elif _name == 'ls':
+        #cmd_reporte_ls(_path, _id, _ruta)
+        print("Se ejecuta comando LS")
+    
+
+    #print(_name, _path, _id, _ruta)
+    t[0] = t[1]
+
+def p_parameters_rep(t):
+    '''parameters_rep : parameters_rep parameter_rep
+                        | parameter_rep'''
+    if len(t) == 3:
+        t[0] = t[1]+ [t[2]]
+    else:
+        t[0] = [t[1]]
+
+def p_parameter_rep(t):
+    '''parameter_rep : param_name_rep
+                    | param_path
+                    | param_id
+                    | param_r'''
+    t[0] = t[1]
+
+def p_param_name_rep(t):
+    '''param_name_rep : GUION NAME IGUAL MBR
+                    | GUION NAME IGUAL DISK
+                    | GUION NAME IGUAL INODE
+                    | GUION NAME IGUAL JOURNALING
+                    | GUION NAME IGUAL BLOCK
+                    | GUION NAME IGUAL BM_INODE
+                    | GUION NAME IGUAL BM_BLOCK
+                    | GUION NAME IGUAL TREE
+                    | GUION NAME IGUAL SB
+                    | GUION NAME IGUAL FILE'''
+    t[0] = {'name' : t[4] }
+
+def p_param_ruta(t):
+    '''param_ruta : GUION RUTA IGUAL CADENA'''
+    t[0] = {'ruta' : t[4] }
+
 def p_param_size(t):
     'param_size : GUION SIZE IGUAL ENTERO'
     t[0] = {'size' : t[4] }

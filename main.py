@@ -58,6 +58,14 @@ fdisk -delete=full -name="Part17" -path="./home/archivos/Disco2.dsk" -size=10240
 
 fdisk -type=L -unit=B -name="Part17" -size=1536 -path="./home/archivos/Disco2.dsk" -fit=WF
 
+mount -path="./home/archivos/Disco2.dsk" -name="Part11"
+mount -path="./home/archivos/Disco2.dsk" -name="Part12"
+mount -path="./home/archivos/Disco2.dsk" -name="Part13"
+mount -path="./home/archivos/Disco2.dsk" -name="Part10"
+
+unmount -id="008Disco2"
+
+rep -name=disk -path="./home/archivos/Disco2.dsk" -id="004Disco2"
 ''' 
 
 # def inicio():

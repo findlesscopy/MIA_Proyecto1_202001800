@@ -49,6 +49,20 @@ palabras_reservadas = {
     'cont' : 'CONT',
     'file' : 'FILE',
 
+    # comandos de los reportes
+    'rep' : 'REP', # QUINCEAVO COMANDO
+    'mbr' : 'MBR', # DECIMO SEXTO COMANDO
+    'disk' : 'DISK', # DECIMO SEPTIMO COMANDO
+    'inode' : 'INODE', # DECIMO OCTAVO COMANDO
+    'journaling' : 'JOURNALING', # DECIMO NOVENO COMANDO
+    'block' : 'BLOCK', # VIGESIMO COMANDO
+    'bm_inode' : 'BM_INODE', # VIGESIMO PRIMER COMANDO
+    'bm_block' : 'BM_BLOCK', # VIGESIMO SEGUNDO COMANDO
+    'tree' : 'TREE', # VIGESIMO TERCER COMANDO
+    'sb' : 'SB', # VIGESIMO CUARTO COMANDO
+    'file' : 'FILE', # VIGESIMO QUINTO COMANDO
+    'ls' : 'LS', # VIGESIMO SEXTO COMANDO
+    'ruta' : 'RUTA', # VIGESIMO SEPTIMO COMANDO
 
 
 

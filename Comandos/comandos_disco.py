@@ -3,11 +3,10 @@ import random
 import sys
 import time
 from Estructuras.MBR import *
-from Estructuras.Transition import *
 from Estructuras.EBR import *
+from Global.Global import particiones_montadas
+
 # Comando MKDISK
-
-
 def cmd_mkdisk(size, path, fit, unit):
     disco = MBR()
     print("DEBE TENER UN FIT: "+fit)
@@ -448,6 +447,7 @@ def particionLogica(particion, path, size, name, fit_disco, fit):
     size_deleted_partitions = []
     tmp_size = particion.part_start
     nombres = []
+    escribir_extra = False
     for particion_logica in ebr_list:
         if particion_logica.part_status == 'D':
             size_deleted_partitions.append(particion_logica.part_size)
@@ -457,17 +457,26 @@ def particionLogica(particion, path, size, name, fit_disco, fit):
         print("\tERROR: Ya existe una partición con el nombre: "+name)
         return
     logica = EBR()
-
+    tmp = EBR()
     if fit_disco == "FF":
         # Crea la particion en el primer espacio Libre
         for particion_logica in ebr_list:
             if particion_logica.part_status == '0':
+                escribir_extra = True
                 logica.part_status = '1'
                 logica.part_fit = fit
                 logica.part_start = tmp_size
                 logica.part_size = size
                 logica.part_next = tmp_size + size
                 logica.part_name = name
+
+               
+                tmp.part_status = '0'
+                tmp.part_fit = 'WF'
+                tmp.part_start = logica.part_next
+                tmp.part_size = 0
+                tmp.part_next = 1234
+                tmp.part_name = ''
                 break
             elif particion_logica.part_status == '1':
                 tmp_size += particion_logica.part_size
@@ -487,12 +496,20 @@ def particionLogica(particion, path, size, name, fit_disco, fit):
     elif fit_disco == "BF":
         for particion_logica in ebr_list:
             if particion_logica.part_status == '0':
+                escribir_extra  = True
                 logica.part_status = '1'
                 logica.part_fit = fit
                 logica.part_start = tmp_size
                 logica.part_size = size
                 logica.part_next = tmp_size + size
                 logica.part_name = name
+
+                tmp.part_status = '0'
+                tmp.part_fit = 'WF'
+                tmp.part_start = logica.part_next
+                tmp.part_size = 0
+                tmp.part_next = 1234
+                tmp.part_name = ''
                 break
             elif particion_logica.part_status == '1':
                 tmp_size += particion_logica.part_size
@@ -513,12 +530,21 @@ def particionLogica(particion, path, size, name, fit_disco, fit):
     elif fit_disco == "WF":
         for particion_logica in ebr_list:
             if particion_logica.part_status == '0':
+                escribir_extra = True
+
                 logica.part_status = '1'
                 logica.part_fit = fit
                 logica.part_start = tmp_size
                 logica.part_size = size
                 logica.part_next = tmp_size + size
                 logica.part_name = name
+
+                tmp.part_status = '0'
+                tmp.part_fit = 'WF'
+                tmp.part_start = logica.part_next
+                tmp.part_size = 0
+                tmp.part_next = 1234
+                tmp.part_name = ''
                 break
             elif particion_logica.part_status == '1':
                 tmp_size += particion_logica.part_size
@@ -537,20 +563,13 @@ def particionLogica(particion, path, size, name, fit_disco, fit):
                     print("\tERROR: No hay espacio suficiente para crear la partición.")
                     return
 
-    tmp = EBR()
-    tmp.part_status = '0'
-    tmp.part_fit = 'WF'
-    tmp.part_start = logica.part_next
-    tmp.part_size = 0
-    tmp.part_next = 1234
-    tmp.part_name = ''
-
     try:
         with open(path, "rb+") as file:
             file.seek(tmp_size)
             file.write(logica.__bytes__())
-            file.seek(tmp_size + size)
-            file.write(tmp.__bytes__())
+            if escribir_extra:
+                file.seek(tmp_size + size)
+                file.write(tmp.__bytes__())
             print("\t> FDISK","Partición logica", name, "creada exitosamente")
     except Exception as e:
         print(e)
@@ -647,6 +666,29 @@ def leer_ebr_desde_archivo(path, inicio):
             tmp_size = ebr.part_next
     return ebr_list
 
+def leer_particiones_desde_archivo(path):
+    try:
+        mbr = MBR()
+        with open(path, "rb") as file:
+            mbr_data = file.read()
+            mbr.mbr_tamano = struct.unpack("<i", mbr_data[0:4])[0]
+            mbr.mbr_fecha_creacion = struct.unpack("<i", mbr_data[4:8])[0]
+            mbr.mbr_disk_signature = struct.unpack("<i", mbr_data[8:12])[0]
+            mbr.disk_fit = mbr_data[12:14].decode("utf-8")
+
+            partition_size = struct.calcsize("<iii16s")*4
+            partition_data = mbr_data[14:14 + partition_size]
+            mbr.mbr_Partition_1.__setstate__(partition_data[0:28]) 
+            mbr.mbr_Partition_2.__setstate__(partition_data[28:56]) 
+            mbr.mbr_Partition_3.__setstate__(partition_data[56:84]) 
+            mbr.mbr_Partition_4.__setstate__(partition_data[84:112])
+    except Exception as e:
+        print(e)
+
+    particiones = [mbr.mbr_Partition_1, mbr.mbr_Partition_2, mbr.mbr_Partition_3, mbr.mbr_Partition_4]
+
+    return particiones
+
 def eliminarParticion(name, path):
 
     try:
@@ -721,7 +763,7 @@ def eliminarLogicas(path, inicio, name):
             ebr.part_fit = ebr.part_fit
             ebr.part_start = ebr.part_start
             ebr.part_size = ebr.part_size
-            ebr.part_next = ebr.part_next
+            ebr.part_next = ebr.part_start + ebr.part_size
             ebr.part_name = ebr.part_name
             break
     try:
@@ -735,3 +777,50 @@ def eliminarLogicas(path, inicio, name):
         print(e)
         print("\tERROR: Error al eliminar la partición en el disco: "+path)
         return
+    
+def cmd_mount(path, name):
+    print("\t> MOUNT: Montando partición...")
+    particiones = leer_particiones_desde_archivo(path)
+    lista_nombres = []
+    index = 0
+    for particion in particiones:
+        index += 1
+        if particion.part_name == name:
+            break
+    for particion in particiones:
+        lista_nombres.append(particion.part_name)
+
+    if name not in lista_nombres:
+        print("\tERROR: No existe una partición con el nombre: "+name)
+        return
+    else:
+        nombre_disco = os.path.splitext(os.path.basename(path))[0]
+        carnet = '00'
+        id = carnet + str(index) + nombre_disco 
+        
+        if id in particiones_montadas:
+            print("\tERROR: La partición ya se encuentra montada.")
+            return
+        else:
+            dict = {'id': id, 'path': path, 'name': name}
+            particiones_montadas.append(dict)
+            print("\t> MOUNT: Partición montada exitosamente.")
+            print("\t> MOUNT: Particiones montadas de momento: ")
+            for i in particiones_montadas:
+                for key in i:
+                    print("\t\t"+key+": "+i[key])
+                    
+                print("\t\t------------------------")
+def cmd_unmount(id):
+    print("\t> UNMOUNT: Desmontando partición...")
+    if id not in particiones_montadas:
+        print("\tERROR: No existe una partición montada con el id: "+id)
+        return
+    else:
+        particiones_montadas.remove(id)
+        print("\t> UNMOUNT: Partición desmontada exitosamente.")
+        print("\t> UNMOUNT: Particiones montadas de momento: ")
+        for i in particiones_montadas:
+            print("\t\t"+i)
+
+            
