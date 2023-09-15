@@ -26,6 +26,22 @@ from Analizadores.analizador_sintactico import parse
 # fdisk -type=L -unit=K -name="Part8" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=FF
 # fdisk -type=L -unit=K -name="Part9" -size=1280 -path="./home/archivos/Disco1.dsk" -fit=BF
 # fdisk -type=L -unit=K -name="Part9" -size=1024 -path="./home/archivos/Disco1.dsk" -fit=BF
+
+# rep -name=mbr -path="./home/archivos/Disco2.dsk" -id="001Disco2"
+
+# mkfs -type=full -id="001Disco2" -fs=2fs
+
+# rep -name=sb -path="./home/archivos/Disco2.dsk" -id="001Disco2"
+
+# login -user="root" -pass="123" -id="001Disco2"
+
+# mkgrp -name="Grupo1"
+
+# mkusr -user="Jose" -pass="asd" -grp="Grupo1"
+
+# rmusr -user="Jose"
+
+# rmgrp -name="Grupo1"
 #Particiones en el disco2
 
 
@@ -34,8 +50,8 @@ mkdisk -unit=K -size=51200 -path="./home/archivos/Disco2.dsk" -fit=FF
 
 fdisk -type=L -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
 fdisk -type=L -unit=K -name="Part12" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
-fdisk -type=E -unit=M -name="Part14" -size=20 -path="./home/archivos/Disco2.dsk" 
 fDisk -type=P -unit=K -name="Part11" -size=10240 -path="./home/archivos/Disco2.dsk" -fit=BF 
+fdisk -type=E -unit=M -name="Part14" -size=20 -path="./home/archivos/Disco2.dsk" 
 fDisk -type=P -unit=M -name="Part12" -size=5 -path="./home/archivos/Disco2.dsk" -fit=FF 
 fDisk -type=P -unit=K -name="Part13" -size=5120 -path="./home/archivos/Disco2.dsk" -fit=WF 
 
@@ -65,7 +81,10 @@ mount -path="./home/archivos/Disco2.dsk" -name="Part10"
 
 unmount -id="008Disco2"
 
-rep -name=disk -path="./home/archivos/Disco2.dsk" -id="004Disco2"
+mkfs -type=full -id="001Disco2" -fs=2fs
+
+rep -name=inode -path="./home/archivos/Disco2.dsk" -id="001Disco2"
+
 ''' 
 
 # def inicio():

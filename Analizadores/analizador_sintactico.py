@@ -3,6 +3,7 @@ from Analizadores.lexer import *
 import Comandos.comandos_generales 
 from Comandos.comandos_disco import *
 from Comandos.comandos_reportes import *
+from Comandos.comandos_usuarios import *
 
 precedence = ()
 
@@ -197,7 +198,8 @@ def p_command_mkfs(t):
 
     _fs = _fs if _fs != None else '2FS'
 
-    print(_id, _type, _fs)
+    cmd_mkfs(_id, _type, _fs)
+    #print(_id, _type, _fs)
     t[0] = t[1]
 
 def p_parameters_mkfs(t):
@@ -226,8 +228,8 @@ def p_command_login(t):
             _password = dict['password']
         elif 'id' in dict:
             _id = dict['id']
-
-    print(_user, _password, _id)
+    cmd_login(_user, _password, _id)
+    #print(_user, _password, _id)
     t[0] = t[1]
 
 def p_parameters_login(t):
@@ -248,16 +250,19 @@ def p_parameter_login(t):
 
 def p_command_logout(t):
     'command_logout : LOGOUT'
+    cmd_logout()
     t[0] = t[1]
 
 def p_command_mkgrp(t):
     'command_mkgrp : MKGRP GUION NAME IGUAL CADENA'
-    print(t[5])
+    cmd_mkgrp(t[5])
+    #print(t[5])
     t[0] = t[1]
 
 def p_command_rmgrp(t):
     'command_rmgrp : RMGRP GUION NAME IGUAL CADENA'
-    print(t[5])
+    cmd_rmgrp(t[5])
+    #print(t[5])
     t[0] = t[1]
 
 def p_command_mkusr(t):
@@ -270,8 +275,8 @@ def p_command_mkusr(t):
             _password = dict['password']
         elif 'grp' in dict:
             _grp = dict['grp']
-
-    print(_user, _password, _grp)
+    cmd_mkusr(_user, _password, _grp)
+    #print(_user, _password, _grp)
     t[0] = t[1]
 
 def p_parameters_mkusr(t):
@@ -292,7 +297,9 @@ def p_parameter_mkusr(t):
 
 def p_command_rmusr(t):
     'command_rmusr : RMUSR GUION USER IGUAL CADENA'
-    print(t[5])
+
+    cmd_rmusr(t[5])
+    #print(t[5])
     t[0] = t[1]
 
 def p_command_mkfile(t):
@@ -371,7 +378,7 @@ def p_command_rep(t):
         cmd_reporte_disk(_path, _id)
         print("Se ejecuta comando DISK")
     elif _name == 'inode':
-        #cmd_reporte_inode(_path, _id)
+        cmd_reporte_inode(_path, _id)
         print("Se ejecuta comando INODE")
     elif _name == 'journaling':
         #cmd_reporte_journaling(_path, _id)
@@ -389,7 +396,7 @@ def p_command_rep(t):
         #cmd_reporte_tree(_path, _id)
         print("Se ejecuta comando TREE")
     elif _name == 'sb':
-        #cmd_reporte_sb(_path, _id)
+        cmd_reporte_super_bloque(_path, _id)
         print("Se ejecuta comando SB")
     elif _name == 'file':
         #cmd_reporte_file(_path, _id, _ruta)

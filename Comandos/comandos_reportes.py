@@ -1,6 +1,9 @@
 from Global.Global import particiones_montadas
 from Estructuras.MBR import *
 from Estructuras.EBR import *
+from Estructuras.SuperBloque import *
+from Estructuras.Bloques import *
+from Estructuras.Inodos import *
 
 def cmd_reporte_mbr(path, id):
     #buscar en particiones montadas el id
@@ -12,7 +15,7 @@ def cmd_reporte_mbr(path, id):
             print("Se encontro la particion")
             dir = particion.get('path')
             particiones  = leer_particiones_desde_archivo(dir) 
-            mbr = leer_mbr_desde_archivo(path)
+            mbr = leer_mbr_desde_archivo(dir)
 
     dot = "digraph G {\n"
     dot += "node [shape=plaintext]\n"
@@ -166,3 +169,261 @@ def cmd_reporte_disk(path, id):
     dot += "}"
 
     print(dot)
+
+def cmd_reporte_super_bloque(path, id):
+    size_bloques_carpetas = len(bytes(BloquesCarpetas()))
+
+    try:
+        id_particion = ""
+        path_particion = ""
+        particion_nombre = ""
+        for particion in particiones_montadas:
+            id_particion = particion.get('id')
+            if id_particion == id:
+                path_particion = particion.get('path')
+                particion_nombre = particion.get('name')
+                break
+        
+        particiones = leer_particiones_desde_archivo(path_particion)
+
+        particion_actual = None
+        for par in particiones:
+            if par.part_name == particion_nombre:
+                particion_actual = par
+                break
+
+        super_tmp = SuperBloque()
+        bytes_super_bloque = bytes(super_tmp)
+
+        recuperado = bytearray(len(bytes_super_bloque))
+        with open(path_particion, "rb") as file:
+            file.seek(particion_actual.part_start)
+            file.readinto(recuperado)
+
+        # Recuperar SuperBloque
+        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
+        super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
+        super_tmp.s_blocks_count = struct.unpack("<i", recuperado[8:12])[0]
+        super_tmp.s_free_blocks_count = struct.unpack("<i", recuperado[12:16])[0]
+        super_tmp.s_free_inodes_count = struct.unpack("<i", recuperado[16:20])[0]
+        super_tmp.s_mtime = struct.unpack("<d", recuperado[20:28])[0]
+        super_tmp.s_umtime = struct.unpack("<d", recuperado[28:36])[0]
+        super_tmp.s_mnt_count = struct.unpack("<i", recuperado[36:40])[0]
+        super_tmp.s_magic = struct.unpack("<i", recuperado[40:44])[0]
+        super_tmp.s_inode_size = struct.unpack("<i", recuperado[44:48])[0]
+        super_tmp.s_block_size = struct.unpack("<i", recuperado[48:52])[0]
+        super_tmp.s_first_ino = struct.unpack("<i", recuperado[52:56])[0]
+        super_tmp.s_first_blo = struct.unpack("<i", recuperado[56:60])[0]
+        super_tmp.s_bm_inode_start = struct.unpack("<i", recuperado[60:64])[0]
+        super_tmp.s_bm_block_start = struct.unpack("<i", recuperado[64:68])[0]
+        super_tmp.s_inode_start = struct.unpack("<i", recuperado[68:72])[0]
+        super_tmp.s_block_start = struct.unpack("<i", recuperado[72:76])[0] 
+
+        dot = "digraph G {\n"
+        dot += "node [shape=plaintext]\n"
+        dot += "graph [rankdir=LR]\n"
+        dot += "super [label=<\n"
+        dot += "<table border='0' cellborder='1' cellspacing='0'>\n"
+        dot += "<tr><td colspan='2' bgcolor='lightblue'><b>Super Bloque</b></td></tr>\n"
+        dot += "<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n"
+        dot += "<tr><td>s_filesystem_type</td><td>{}</td></tr>\n".format(super_tmp.s_filesystem_type)
+        dot += "<tr><td>s_inodes_count</td><td>{}</td></tr>\n".format(super_tmp.s_inodes_count)
+        dot += "<tr><td>s_blocks_count</td><td>{}</td></tr>\n".format(super_tmp.s_blocks_count)
+        dot += "<tr><td>s_free_blocks_count</td><td>{}</td></tr>\n".format(super_tmp.s_free_blocks_count)
+        dot += "<tr><td>s_free_inodes_count</td><td>{}</td></tr>\n".format(super_tmp.s_free_inodes_count)
+        dot += "<tr><td>s_mtime</td><td>{}</td></tr>\n".format(super_tmp.s_mtime)
+        dot += "<tr><td>s_umtime</td><td>{}</td></tr>\n".format(super_tmp.s_umtime)
+        dot += "<tr><td>s_mnt_count</td><td>{}</td></tr>\n".format(super_tmp.s_mnt_count)
+        dot += "<tr><td>s_magic</td><td>{}</td></tr>\n".format(super_tmp.s_magic)
+        dot += "<tr><td>s_inode_size</td><td>{}</td></tr>\n".format(super_tmp.s_inode_size)
+        dot += "<tr><td>s_block_size</td><td>{}</td></tr>\n".format(super_tmp.s_block_size)
+        dot += "<tr><td>s_first_ino</td><td>{}</td></tr>\n".format(super_tmp.s_first_ino)
+        dot += "<tr><td>s_first_blo</td><td>{}</td></tr>\n".format(super_tmp.s_first_blo)
+        dot += "<tr><td>s_bm_inode_start</td><td>{}</td></tr>\n".format(super_tmp.s_bm_inode_start)
+        dot += "<tr><td>s_bm_block_start</td><td>{}</td></tr>\n".format(super_tmp.s_bm_block_start)
+        dot += "<tr><td>s_inode_start</td><td>{}</td></tr>\n".format(super_tmp.s_inode_start)
+        dot += "<tr><td>s_block_start</td><td>{}</td></tr>\n".format(super_tmp.s_block_start)
+        dot += "</table>\n"
+        dot += ">];\n"
+        dot += "}"
+        print(dot)
+
+    except Exception as e:
+        print(e)
+        return False
+
+
+def cmd_reporte_inode(path, id):
+    size_bloques_carpetas = len(bytes(BloquesCarpetas()))
+
+    try:
+        id_particion = ""
+        path_particion = ""
+        particion_nombre = ""
+        for particion in particiones_montadas:
+            id_particion = particion.get('id')
+            if id_particion == id:
+                path_particion = particion.get('path')
+                particion_nombre = particion.get('name')
+                break
+        
+        particiones = leer_particiones_desde_archivo(path_particion)
+
+        particion_actual = None
+        for par in particiones:
+            if par.part_name == particion_nombre:
+                particion_actual = par
+                break
+
+        super_tmp = SuperBloque()
+        bytes_super_bloque = bytes(super_tmp)
+
+        recuperado = bytearray(len(bytes_super_bloque))
+        with open(path_particion, "rb") as file:
+            file.seek(particion_actual.part_start)
+            file.readinto(recuperado)
+
+        # Recuperar SuperBloque
+        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
+        super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
+        super_tmp.s_blocks_count = struct.unpack("<i", recuperado[8:12])[0]
+        super_tmp.s_free_blocks_count = struct.unpack("<i", recuperado[12:16])[0]
+        super_tmp.s_free_inodes_count = struct.unpack("<i", recuperado[16:20])[0]
+        super_tmp.s_mtime = struct.unpack("<d", recuperado[20:28])[0]
+        super_tmp.s_umtime = struct.unpack("<d", recuperado[28:36])[0]
+        super_tmp.s_mnt_count = struct.unpack("<i", recuperado[36:40])[0]
+        super_tmp.s_magic = struct.unpack("<i", recuperado[40:44])[0]
+        super_tmp.s_inode_size = struct.unpack("<i", recuperado[44:48])[0]
+        super_tmp.s_block_size = struct.unpack("<i", recuperado[48:52])[0]
+        super_tmp.s_first_ino = struct.unpack("<i", recuperado[52:56])[0]
+        super_tmp.s_first_blo = struct.unpack("<i", recuperado[56:60])[0]
+        super_tmp.s_bm_inode_start = struct.unpack("<i", recuperado[60:64])[0]
+        super_tmp.s_bm_block_start = struct.unpack("<i", recuperado[64:68])[0]
+        super_tmp.s_inode_start = struct.unpack("<i", recuperado[68:72])[0]
+        super_tmp.s_block_start = struct.unpack("<i", recuperado[72:76])[0] 
+    
+        # Recuperar Bloques de Inodos
+        inodos = []
+
+        tmp_size = super_tmp.s_inode_start
+        inode_list = []
+        with open(path, "rb+") as file:
+        
+            for i in range(2):
+                file.seek(tmp_size)
+                inode = Inodos()
+                inode_data = file.read()  # Leer EBR
+                inode.i_uid = struct.unpack("<i", inode_data[0:4])[0]
+                inode.i_gid = struct.unpack("<i", inode_data[4:8])[0]
+                inode.i_size = struct.unpack("<i", inode_data[8:12])[0]
+                inode.i_atime = struct.unpack("<d", inode_data[12:20])[0]
+                inode.i_ctime = struct.unpack("<d", inode_data[20:28])[0]
+                inode.i_mtime = struct.unpack("<d", inode_data[28:36])[0]
+                inode.i_block = list(struct.unpack("<15i", inode_data[36:96]))
+                inode.i_type = struct.unpack("<B", inode_data[96:97])[0]
+                inode.i_perm = struct.unpack("<i", inode_data[97:101])[0]
+                
+                inode_list.append(inode)
+
+        # hacer un grafico de lista enlazada con cada inodo
+        dot = "digraph G {\n"
+        dot += "node [shape=plaintext]\n"
+        dot += "graph [rankdir=LR]\n"
+        dot += "inodos [label=<\n"
+        dot += "<table border='0' cellborder='1' cellspacing='0'>\n"
+        dot += "<tr><td colspan='2' bgcolor='lightblue'><b>Inodos</b></td></tr>\n"
+
+        for inode in inode_list:
+            dot += "<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n"
+            dot += "<tr><td>i_uid</td><td>{}</td></tr>\n".format(inode.i_uid)
+            dot += "<tr><td>i_gid</td><td>{}</td></tr>\n".format(inode.i_gid)
+            dot += "<tr><td>i_size</td><td>{}</td></tr>\n".format(inode.i_size)
+            dot += "<tr><td>i_atime</td><td>{}</td></tr>\n".format(inode.i_atime)
+            dot += "<tr><td>i_ctime</td><td>{}</td></tr>\n".format(inode.i_ctime)
+            dot += "<tr><td>i_mtime</td><td>{}</td></tr>\n".format(inode.i_mtime)
+            dot += "<tr><td>i_block</td><td>{}</td></tr>\n".format(inode.i_block)
+            dot += "<tr><td>i_type</td><td>{}</td></tr>\n".format(inode.i_type)
+            dot += "<tr><td>i_perm</td><td>{}</td></tr>\n".format(inode.i_perm)
+            
+        dot += "</table>\n"
+        dot += ">];\n"
+        dot += "}"
+        print(dot)
+
+
+            
+    except Exception as e:
+        print(e)
+
+def leer_ebr_desde_archivo(path, inicio):
+    tmp_size = inicio
+    ebr_list = []
+    with open(path, "rb+") as file:
+        while True:
+            file.seek(tmp_size)
+            ebr_data = file.read()  # Leer EBR
+            ebr = EBR()
+            ebr_list.append(ebr)
+            ebr.__setstate__(ebr_data)
+            if ebr.part_next == 1234:
+                break
+            tmp_size = ebr.part_next
+    return ebr_list
+
+
+def cmd_reporte_block():
+    pass
+
+def cmd_reporte_bm_inode(path, id):
+    try:
+        id_particion = ""
+        path_particion = ""
+        particion_nombre = ""
+        for particion in particiones_montadas:
+            id_particion = particion.get('id')
+            if id_particion == id:
+                path_particion = particion.get('path')
+                particion_nombre = particion.get('name')
+                break
+        
+        particiones = leer_particiones_desde_archivo(path_particion)
+
+        particion_actual = None
+        for par in particiones:
+            if par.part_name == particion_nombre:
+                particion_actual = par
+                break
+
+        super_tmp = SuperBloque()
+        bytes_super_bloque = bytes(super_tmp)
+
+        recuperado = bytearray(len(bytes_super_bloque))
+        with open(path_particion, "rb") as file:
+            file.seek(particion_actual.part_start)
+            file.readinto(recuperado)
+
+        # Recuperar SuperBloque
+        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
+        super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
+        super_tmp.s_blocks_count = struct.unpack("<i", recuperado[8:12])[0]
+        super_tmp.s_free_blocks_count = struct.unpack("<i", recuperado[12:16])[0]
+        super_tmp.s_free_inodes_count = struct.unpack("<i", recuperado[16:20])[0]
+        super_tmp.s_mtime = struct.unpack("<d", recuperado[20:28])[0]
+        super_tmp.s_umtime = struct.unpack("<d", recuperado[28:36])[0]
+        super_tmp.s_mnt_count = struct.unpack("<i", recuperado[36:40])[0]
+        super_tmp.s_magic = struct.unpack("<i", recuperado[40:44])[0]
+        super_tmp.s_inode_size = struct.unpack("<i", recuperado[44:48])[0]
+        super_tmp.s_block_size = struct.unpack("<i", recuperado[48:52])[0]
+        super_tmp.s_first_ino = struct.unpack("<i", recuperado[52:56])[0]
+        super_tmp.s_first_blo = struct.unpack("<i", recuperado[56:60])[0]
+        super_tmp.s_bm_inode_start = struct.unpack("<i", recuperado[60:64])[0]
+        super_tmp.s_bm_block_start = struct.unpack("<i", recuperado[64:68])[0]
+        super_tmp.s_inode_start = struct.unpack("<i", recuperado[68:72])[0]
+        super_tmp.s_block_start = struct.unpack("<i", recuperado[72:76])[0] 
+
+    except Exception as e:
+        print(e)
+        return False
+
+def cmd_reporte_bm_block():
+    pass

@@ -4,6 +4,11 @@ import sys
 import time
 from Estructuras.MBR import *
 from Estructuras.EBR import *
+from Estructuras.SuperBloque import *
+from Estructuras.Inodos import *
+from Estructuras.Bloques import *
+from Estructuras.Journaling import *
+
 from Global.Global import particiones_montadas
 
 # Comando MKDISK
@@ -811,6 +816,7 @@ def cmd_mount(path, name):
                     print("\t\t"+key+": "+i[key])
                     
                 print("\t\t------------------------")
+
 def cmd_unmount(id):
     print("\t> UNMOUNT: Desmontando partición...")
     if id not in particiones_montadas:
@@ -823,4 +829,199 @@ def cmd_unmount(id):
         for i in particiones_montadas:
             print("\t\t"+i)
 
-            
+def leer_mbr_desde_archivo(path):
+    mbr = MBR()
+    try:
+
+        with open(path, "rb") as file:
+            mbr_data = file.read()
+            mbr.mbr_tamano = struct.unpack("<i", mbr_data[0:4])[0]
+            mbr.mbr_fecha_creacion = struct.unpack("<i", mbr_data[4:8])[0]
+            mbr.mbr_disk_signature = struct.unpack("<i", mbr_data[8:12])[0]
+            mbr.disk_fit = mbr_data[12:14].decode("utf-8")
+    except Exception as e:
+        print(e)
+
+    return mbr
+
+def cmd_mkfs(id, type, fs):
+    
+    print("\t> MKFS: Formateando partición...")
+    print("\t> MKFS: Tipo de formateo: "+fs)
+    
+    path_disco = ''
+    nombre_particion = ''
+    for i in particiones_montadas:
+        if i['id'] == id:
+            path_disco = i['path']
+            nombre_particion = i['name']
+            break
+    
+    if path_disco == '':
+        print("\tERROR: No existe una partición montada con el id: "+id)
+        return
+    
+    particiones = leer_particiones_desde_archivo(path_disco)
+
+    size_particion = 0
+    part = None
+    for particion in particiones:
+        if particion.part_name == nombre_particion:
+            size_particion = particion.part_size
+            part = particion
+            break
+
+    n = 0
+    size_super_bloque = struct.calcsize("<iiiiiddiiiiiiiiii")
+    size_inodos = struct.calcsize("<iiiddd15ici")
+    size_bloques_archivo = len(bytes(BloquesArchivos()))
+    size_journaling = sys.getsizeof(Journaling())
+
+    if fs == "2FS":
+        n = (size_particion - size_super_bloque) // (4 + size_inodos + 3*size_bloques_archivo)
+    elif fs == "3FS":
+        n = (size_particion - size_super_bloque) // (4 + size_inodos + 3*size_bloques_archivo + size_journaling)
+
+    super = SuperBloque()
+    super.s_inodes_count = super.s_free_inodes_count = n
+    super.s_blocks_count = super.s_free_blocks_count = 3*n
+    super.s_mtime = int(time.time())
+    super.s_umtime = int(time.time())
+    super.s_mnt_count = 1
+
+
+    if fs == "2FS":
+        super.s_filesystem_type = 2
+        ext2(super, part, n, path_disco)
+        print("\t> MKFS: Formateo ext2 exitoso.")
+    elif fs == "3FS":
+        super.s_filesystem_type = 3
+        #ext3(super, part, n, path_disco)
+        print("\t> MKFS: Formateo ext3 exitoso.")
+
+    # Size(Particion) - Size(SuperBloque)
+    # 4 + Size(Inodo) + 3*Size(Bloque)
+
+def ext2(super, particion, n, path):
+    size_super_bloque = struct.calcsize("<iiiiiddiiiiiiiiii")
+    size_inodos = struct.calcsize("<iiiddd15ici")
+    size_bloques_carpetas = len(bytes(BloquesCarpetas()))
+
+    super.s_bm_inode_start = particion.part_start + size_super_bloque 
+    super.s_bm_block_start = super.s_bm_inode_start + n
+    super.s_inode_start = super.s_bm_block_start + (3 * n)
+    super.s_block_start = super.s_bm_inode_start + (n * size_inodos)
+
+    # Escribir SuperBloque
+    try:
+        with open(path, "rb+") as bfile:
+            bfile.seek(particion.part_start)
+            bfile.write(bytes(super))
+
+            zero = b'0'
+            bfile.seek(super.s_bm_inode_start)
+            bfile.write(zero*n)
+
+            bfile.seek(super.s_bm_block_start)
+            bfile.write(zero * (3 * n))
+
+            inode = Inodos()
+            bfile.seek(super.s_inode_start)
+            for _ in range(n):
+                bfile.write(bytes(inode))
+
+            folder = BloquesCarpetas()
+            bfile.seek(super.s_block_start)
+            for _ in range(3*n):
+                bfile.write(bytes(folder))
+
+    except Exception as e:
+        print(e)
+        print("\tERROR: Error al escribir el super bloque en el disco: "+path)
+        return
+    
+    try:
+        super_tmp = SuperBloque()
+        bytes_super_bloque = bytes(super_tmp)
+
+        recuperado = bytearray(len(bytes_super_bloque))
+        with open(path, "rb") as archivo:
+            archivo.seek(particion.part_start)
+            archivo.readinto(recuperado)
+
+        # Recuperar SuperBloque
+        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
+        super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
+        super_tmp.s_blocks_count = struct.unpack("<i", recuperado[8:12])[0]
+        super_tmp.s_free_blocks_count = struct.unpack("<i", recuperado[12:16])[0]
+        super_tmp.s_free_inodes_count = struct.unpack("<i", recuperado[16:20])[0]
+        super_tmp.s_mtime = struct.unpack("<d", recuperado[20:28])[0]
+        super_tmp.s_umtime = struct.unpack("<d", recuperado[28:36])[0]
+        super_tmp.s_mnt_count = struct.unpack("<i", recuperado[36:40])[0]
+        super_tmp.s_magic = struct.unpack("<i", recuperado[40:44])[0]
+        super_tmp.s_inode_size = struct.unpack("<i", recuperado[44:48])[0]
+        super_tmp.s_block_size = struct.unpack("<i", recuperado[48:52])[0]
+        super_tmp.s_first_ino = struct.unpack("<i", recuperado[52:56])[0]
+        super_tmp.s_first_blo = struct.unpack("<i", recuperado[56:60])[0]
+        super_tmp.s_bm_inode_start = struct.unpack("<i", recuperado[60:64])[0]
+        super_tmp.s_bm_block_start = struct.unpack("<i", recuperado[64:68])[0]
+        super_tmp.s_inode_start = struct.unpack("<i", recuperado[68:72])[0]
+        super_tmp.s_block_start = struct.unpack("<i", recuperado[72:76])[0] 
+    except Exception as e:
+        print(e)
+
+    inode = Inodos()
+    inode.i_uid = 1
+    inode.i_gid = 1
+    inode.i_size = 0
+    inode.i_atime = super.s_umtime
+    inode.i_ctime = super.s_umtime
+    inode.i_mtime = super.s_umtime
+    inode.i_type = 0
+    inode.i_perm = 664
+    inode.i_block[0] = 0 #porque es una carpeta
+
+    fb = BloquesCarpetas()
+    fb.b_content[0].b_name = "."
+    fb.b_content[0].b_inodo = 0
+    fb.b_content[1].b_name = ".."
+    fb.b_content[1].b_inodo = 0
+    fb.b_content[2].b_name = "user.txt"
+    fb.b_content[2].b_inodo = 1
+
+    data = "1,G,root\n1,U,root,root,123\n"
+    inode_tmp = Inodos()
+    inode_tmp.i_uid = 1
+    inode_tmp.i_gid = 1
+    inode_tmp.i_size = len(data) + size_bloques_carpetas
+    inode_tmp.i_atime = super.s_umtime
+    inode_tmp.i_ctime = super.s_umtime
+    inode_tmp.i_mtime = super.s_umtime
+    inode_tmp.i_type = 1
+    inode_tmp.i_perm = 664
+    inode_tmp.i_block[0] = 1 #porque es un archivo
+
+    inode.i_size = inode_tmp.i_size + size_bloques_carpetas + size_inodos
+
+    fileb = BloquesArchivos()
+    fileb.b_content = data
+
+    try:
+        with open(path, "rb+") as bfiles:
+            bfiles.seek(super.s_bm_inode_start)
+            bfiles.write(b'1' * 2)
+
+            bfiles.seek(super.s_bm_block_start)
+            bfiles.write(b'1' * 2)
+
+            bfiles.seek(super.s_inode_start)
+            bfiles.write(bytes(inode))
+            bfiles.write(bytes(inode_tmp))
+
+            bfiles.seek(super.s_block_start)
+            bfiles.write(bytes(fb))
+            bfiles.write(bytes(fileb))
+
+    except Exception as e:
+        print(e)
+    
