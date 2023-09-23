@@ -254,7 +254,6 @@ def cmd_reporte_super_bloque(path, id):
 
 
 def cmd_reporte_inode(path, id):
-    size_bloques_carpetas = len(bytes(BloquesCarpetas()))
 
     try:
         id_particion = ""
@@ -272,7 +271,13 @@ def cmd_reporte_inode(path, id):
         particion_actual = None
         for par in particiones:
             if par.part_name == particion_nombre:
-                particion_actual = par
+                # print(par.part_status)
+                # print(par.part_type)
+                # print(par.part_fit)
+                # print(par.part_start)
+                # print(par.part_size)
+                # print(par.part_name)  
+                particion_actual = par              
                 break
 
         super_tmp = SuperBloque()
@@ -282,7 +287,7 @@ def cmd_reporte_inode(path, id):
         with open(path_particion, "rb") as file:
             file.seek(particion_actual.part_start)
             file.readinto(recuperado)
-
+        
         # Recuperar SuperBloque
         super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
         super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
@@ -301,15 +306,15 @@ def cmd_reporte_inode(path, id):
         super_tmp.s_bm_block_start = struct.unpack("<i", recuperado[64:68])[0]
         super_tmp.s_inode_start = struct.unpack("<i", recuperado[68:72])[0]
         super_tmp.s_block_start = struct.unpack("<i", recuperado[72:76])[0] 
-    
+
         # Recuperar Bloques de Inodos
         inodos = []
 
         tmp_size = super_tmp.s_inode_start
         inode_list = []
-        with open(path, "rb+") as file:
+        with open(path_particion, "rb+") as file:
         
-            for i in range(2):
+            for i in range(5):
                 file.seek(tmp_size)
                 inode = Inodos()
                 inode_data = file.read()  # Leer EBR

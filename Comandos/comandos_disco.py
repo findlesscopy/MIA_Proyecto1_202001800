@@ -932,7 +932,7 @@ def ext2(super, particion, n, path):
 
             folder = BloquesCarpetas()
             bfile.seek(super.s_block_start)
-            for _ in range(3*n):
+            for _ in range(3 * n):
                 bfile.write(bytes(folder))
 
     except Exception as e:
@@ -950,7 +950,7 @@ def ext2(super, particion, n, path):
             archivo.readinto(recuperado)
 
         # Recuperar SuperBloque
-        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[0:4])[0]
+        super_tmp.s_filesystem_type = struct.unpack("<i", recuperado[:4])[0]
         super_tmp.s_inodes_count = struct.unpack("<i", recuperado[4:8])[0]
         super_tmp.s_blocks_count = struct.unpack("<i", recuperado[8:12])[0]
         super_tmp.s_free_blocks_count = struct.unpack("<i", recuperado[12:16])[0]
