@@ -36,7 +36,17 @@ def p_commands(t):
                 | command_rmusr
                 | command_mkfile
                 | command_cat
-                | command_rep'''
+                | command_rep
+                | command_pause'''
+    t[0] = t[1]
+
+def cmd_pause():
+    input("\t> PAUSE: Presione enter para continuar...")
+    return
+
+def p_command_pause(t):
+    'command_pause : PAUSE'
+    cmd_pause()
     t[0] = t[1]
 
 def cmd_execute(path):
@@ -45,7 +55,7 @@ def cmd_execute(path):
             entrada = f.read()
             parse(entrada)
     except:
-        print("Error al ejecutar el archivo")
+        print("\tERROR: Ha ocurrido un error al ejecutar el archivo")
         return
 
 def p_command_execute(t):
@@ -97,7 +107,7 @@ def p_parameter_mkdisk(t):
 
 def p_command_rmdisk(t):
     'command_rmdisk : RMDISK GUION PATH IGUAL CADENA'
-    print(t[5])
+    #print(t[5])
     cmd_rmdisk(t[5])
     t[0] = t[1]
 
@@ -373,10 +383,10 @@ def p_command_rep(t):
     
     if _name == 'mbr':
         cmd_reporte_mbr(_path, _id)
-        print("Se ejecuta comando MBR")
+        #print("Se ejecuta comando MBR")
     elif _name == 'disk':
         cmd_reporte_disk(_path, _id)
-        print("Se ejecuta comando DISK")
+        #print("Se ejecuta comando DISK")
     elif _name == 'inode':
         cmd_reporte_inode(_path, _id)
         print("Se ejecuta comando INODE")
@@ -397,7 +407,7 @@ def p_command_rep(t):
         print("Se ejecuta comando TREE")
     elif _name == 'sb':
         cmd_reporte_super_bloque(_path, _id)
-        print("Se ejecuta comando SB")
+        #print("Se ejecuta comando SB")
     elif _name == 'file':
         #cmd_reporte_file(_path, _id, _ruta)
         print("Se ejecuta comando FILE")

@@ -64,7 +64,7 @@ palabras_reservadas = {
     'ls' : 'LS', # VIGESIMO SEXTO COMANDO
     'ruta' : 'RUTA', # VIGESIMO SEPTIMO COMANDO
 
-
+    'pause': 'PAUSE', # VIGESIMO OCTAVO COMANDO
 
 }
 
@@ -86,6 +86,10 @@ t_GUION = r'\-'
 
 # Expresiones regulares con acciones de codigo 55 
 # todo ingresa como un string  "55" int(55) 
+def t_COMMENT(t):
+    r'\#.*'
+    pass
+
 def t_FS(t):
     r'2fs|3fs'
     t.value = t.value.upper()

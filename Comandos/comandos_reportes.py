@@ -4,18 +4,27 @@ from Estructuras.EBR import *
 from Estructuras.SuperBloque import *
 from Estructuras.Bloques import *
 from Estructuras.Inodos import *
+import os
+import graphviz
 
 def cmd_reporte_mbr(path, id):
+    print("\t> REP: Generando reporte mbr...")
     #buscar en particiones montadas el id
     mbr = MBR()
     particiones =   []
+    esta = False
     for particion in particiones_montadas:
         nombre = particion.get('id')
         if nombre == id:
-            print("Se encontro la particion")
+            esta = True
+            #print("Se encontro la particion")
             dir = particion.get('path')
             particiones  = leer_particiones_desde_archivo(dir) 
             mbr = leer_mbr_desde_archivo(dir)
+
+    if esta == False:
+        print("\tERROR: No se encontro la particion montada.")
+        return 
 
     dot = "digraph G {\n"
     dot += "node [shape=plaintext]\n"
@@ -43,20 +52,23 @@ def cmd_reporte_mbr(path, id):
         dot += "<tr><td>part_name</td><td>{}</td></tr>\n".format(part.part_name)
 
         if part.part_type == 'E':
-            ebr_list = leer_ebr_desde_archivo(dir, part.part_start)
-            index = 0
-            for ebr in ebr_list:
-                index += 1
-                if ebr.part_next == 1234:
-                    break
-                dot += "<tr><td colspan='2' bgcolor='lightyellow'><b>Particion Logica {}</b></td></tr>\n".format(index)
-                dot += "<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n"
-                dot += "<tr><td>part_status</td><td>{}</td></tr>\n".format(ebr.part_status)
-                dot += "<tr><td>part_fit</td><td>{}</td></tr>\n".format(ebr.part_fit)
-                dot += "<tr><td>part_start</td><td>{}</td></tr>\n".format(ebr.part_start)
-                dot += "<tr><td>part_size</td><td>{}</td></tr>\n".format(ebr.part_size)
-                dot += "<tr><td>part_next</td><td>{}</td></tr>\n".format(ebr.part_next)
-                dot += "<tr><td>part_name</td><td>{}</td></tr>\n".format(ebr.part_name)
+            if part.part_status == 'D':
+                pass
+            else:
+                ebr_list = leer_ebr_desde_archivo(dir, part.part_start)
+                index = 0
+                for ebr in ebr_list:
+                    index += 1
+                    if ebr.part_next == 1234:
+                        break
+                    dot += "<tr><td colspan='2' bgcolor='lightyellow'><b>Particion Logica {}</b></td></tr>\n".format(index)
+                    dot += "<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n"
+                    dot += "<tr><td>part_status</td><td>{}</td></tr>\n".format(ebr.part_status)
+                    dot += "<tr><td>part_fit</td><td>{}</td></tr>\n".format(ebr.part_fit)
+                    dot += "<tr><td>part_start</td><td>{}</td></tr>\n".format(ebr.part_start)
+                    dot += "<tr><td>part_size</td><td>{}</td></tr>\n".format(ebr.part_size)
+                    dot += "<tr><td>part_next</td><td>{}</td></tr>\n".format(ebr.part_next)
+                    dot += "<tr><td>part_name</td><td>{}</td></tr>\n".format(ebr.part_name)
                 
         else:
             continue
@@ -65,7 +77,12 @@ def cmd_reporte_mbr(path, id):
     dot += "</table>\n"
     dot += ">];\n"
     dot += "}"
-    print(dot)
+
+    nombre_archivo = os.path.splitext(os.path.basename(path))[0]
+    graph = graphviz.Source(dot)
+    graph.render(nombre_archivo, format='svg')
+
+    print("\t> REP: Reporte mbr generado")
 
 
 def leer_ebr_desde_archivo(path, inicio):
@@ -124,16 +141,17 @@ def leer_mbr_desde_archivo(path):
 
 
 def cmd_reporte_disk(path, id):
+    print("\t> REP: Generando reporte disk...")
     #buscar en particiones montadas el id
     mbr = MBR()
     particiones =   []
     for particion in particiones_montadas:
         nombre = particion.get('id')
         if nombre == id:
-            print("Se encontro la particion")
+            #print("Se encontro la particion")
             dir = particion.get('path')
             particiones  = leer_particiones_desde_archivo(dir) 
-            mbr = leer_mbr_desde_archivo(path)
+            mbr = leer_mbr_desde_archivo(dir)
 
     size_disco = mbr.mbr_tamano
 
@@ -148,17 +166,20 @@ def cmd_reporte_disk(path, id):
 
     for part in particiones:
         if part.part_type == 'E':
-            dot += "<td colspan='2' bgcolor='lightblue'><b>Partición Extendida</b><br/><b>Ocupa el {}% del disco</b></td>\n".format(part.part_size*100/size_disco)
-            ebr_list = leer_ebr_desde_archivo(dir, part.part_start)
-            dot += "<td>\n<table border='0' cellborder='1' cellspacing='0' cellpadding='50'><tr>"
-            for ebr in ebr_list:
-                if ebr.part_next == 1234:
-                    break
-                dot += "<td bgcolor='lightyellow'>"
-                dot += "<b>Partición Lógica</b><br/>"
-                dot += "<b>Ocupa el {}% del disco</b><br/>".format(ebr.part_size*100/size_disco)
-                dot += "</td>"
-            dot += "</tr></table>\n</td>\n"
+            if part.part_status == 'D':
+                dot += "<td colspan='2' bgcolor='lightblue'><b>Partición </b><br/><b>Ocupa el {}% del disco</b></td>\n".format(part.part_size*100/size_disco)
+            else:
+                dot += "<td colspan='2' bgcolor='lightblue'><b>Partición Extendida</b><br/><b>Ocupa el {}% del disco</b></td>\n".format(part.part_size*100/size_disco)
+                ebr_list = leer_ebr_desde_archivo(dir, part.part_start)
+                dot += "<td>\n<table border='0' cellborder='1' cellspacing='0' cellpadding='50'><tr>"
+                for ebr in ebr_list:
+                    if ebr.part_next == 1234:
+                        break
+                    dot += "<td bgcolor='lightyellow'>"
+                    dot += "<b>Partición Lógica</b><br/>"
+                    dot += "<b>Ocupa el {}% del disco</b><br/>".format(ebr.part_size*100/size_disco)
+                    dot += "</td>"
+                dot += "</tr></table>\n</td>\n"
         else:
             # Agregar celdas para particiones primarias
             dot += "<td colspan='2' bgcolor='lightblue'><b>Partición {}</b><br/><b>Ocupa el {}% del disco</b></td>\n".format(part.part_type, part.part_size*100/size_disco)
@@ -168,11 +189,14 @@ def cmd_reporte_disk(path, id):
     dot += ">];\n"
     dot += "}"
 
-    print(dot)
+    nombre_archivo = os.path.splitext(os.path.basename(path))[0]
+    graph = graphviz.Source(dot)
+    graph.render(nombre_archivo, format='svg', )
+    print("\t> REP: Reporte disk generado")
 
 def cmd_reporte_super_bloque(path, id):
     size_bloques_carpetas = len(bytes(BloquesCarpetas()))
-
+    print("\t> REP: Generando reporte super_bloque...")
     try:
         id_particion = ""
         path_particion = ""
@@ -246,8 +270,11 @@ def cmd_reporte_super_bloque(path, id):
         dot += "</table>\n"
         dot += ">];\n"
         dot += "}"
-        print(dot)
-
+        #print(dot)
+        nombre_archivo = os.path.splitext(os.path.basename(path))[0]
+        graph = graphviz.Source(dot)
+        graph.render(nombre_archivo, format='svg')
+        print("\t> REP: Reporte super_bloque generado")
     except Exception as e:
         print(e)
         return False
@@ -432,3 +459,10 @@ def cmd_reporte_bm_inode(path, id):
 
 def cmd_reporte_bm_block():
     pass
+
+def crear_imagen_pdf(path, dot):
+    try:
+        os.system("dot -Tpng " + path + " -o " + path + ".png")
+        print("\t> REP: Imagen pdf creada")
+    except Exception as e:
+        print(e)

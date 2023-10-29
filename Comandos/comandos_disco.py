@@ -14,7 +14,7 @@ from Global.Global import particiones_montadas
 # Comando MKDISK
 def cmd_mkdisk(size, path, fit, unit):
     disco = MBR()
-    print("DEBE TENER UN FIT: "+fit)
+    #print("DEBE TENER UN FIT: "+fit)
     try:
         if unit == 'K':
             total_size = 1024 * size
@@ -101,7 +101,7 @@ def cmd_fdisk(size, path, name, unit, type, fit, delete, add):
             #print("Eliminar particion")
         elif add != None:
             #agregarParticion(add, name, path, unit)
-            print("Agregar particion")
+            print("\t> FDISK: Se modifico el espacio")
         else:
             crearParticion(size, path, name, unit, type, fit)
             #print("Crear particion")
@@ -819,16 +819,28 @@ def cmd_mount(path, name):
 
 def cmd_unmount(id):
     print("\t> UNMOUNT: Desmontando partición...")
-    if id not in particiones_montadas:
+    aux_nombres = []
+    particion_actual = None
+    for particion in particiones_montadas:
+        aux_nombres.append(particion.get('id'))
+    
+    for particion in particiones_montadas:
+        if particion.get('id') == id:
+            particion_actual = particion
+            break
+
+    if id not in aux_nombres:
         print("\tERROR: No existe una partición montada con el id: "+id)
         return
     else:
-        particiones_montadas.remove(id)
+        particiones_montadas.remove(particion_actual)
         print("\t> UNMOUNT: Partición desmontada exitosamente.")
         print("\t> UNMOUNT: Particiones montadas de momento: ")
         for i in particiones_montadas:
-            print("\t\t"+i)
-
+                for key in i:
+                    print("\t\t"+key+": "+i[key])
+                    
+                print("\t\t------------------------")
 def leer_mbr_desde_archivo(path):
     mbr = MBR()
     try:
